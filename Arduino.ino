@@ -12,7 +12,7 @@
 
 const int TOTAL_DAYS = 18;
 
-const int TONE_PIN = 7; //TODO: 
+const int TONE_PIN = 4; 
 const int POWER_SLOT = 3;
 const int TEMPERATURE_SLOT = 2;
 const int SERVO_SLOT = 9;
@@ -33,6 +33,7 @@ Servo servo;  // create servo object to control a servo
 // Specail symbols
 uint8_t clock[8] = {0x0,0xe,0x15,0x17,0x11,0xe,0x0};
 uint8_t heart[8] = {0x0,0xa,0x1f,0x1f,0xe,0x4,0x0};
+byte deltaChar[8] = {0b00000,0b00000,0b00000,0b00000,0b00100,0b01010,0b11111,0b00000};
 int celsium_t = 15 + 16*13;
 
 int currentDay = 1; //TODO:
@@ -79,6 +80,8 @@ void setup()
   pinMode(TONE_PIN, OUTPUT);
   
   initDisplay();
+
+  tone(4, 196);
 }
 
 
@@ -98,7 +101,7 @@ void loop()
 
   heartbeat();
 
-  digitalWrite(TONE_PIN, HIGH); //Play sound
+  //playShortBeep();
 
   // Rotate each 2 hours
   const int fourHours = 4 * 60; // * 60;
@@ -107,8 +110,20 @@ void loop()
   } else if (duration % fourHours == fourHours / 2) { 
     shakeRightCard();
   }
+}
 
-  //delay(1000);
+// Generates a pulse of duty cycle 50%
+// and period 800 milliseconds
+void playShortBeep()
+{
+  tone (TONE_PIN, 500); //включаем на 500 Гц
+  delay(500); //ждем 100 Мс
+  tone(TONE_PIN, 1000); //включаем на 1000 Гц
+  delay(500); //ждем 100 Мс
+  //digitalWrite(TONE_PIN, HIGH);
+  //delay(400);
+  //digitalWrite(TONE_PIN, LOW);
+  //delay(400);
 }
 
 //------- Private methods -------
@@ -121,7 +136,7 @@ void validateTemparature() {
 //  boolean inRange =  abs(temperature - expected) <  delta;
 
   Serial.println(duration);
-  if (duration % 60 == 0) {
+  if (duration % 50 == 0) {
     digitalWrite(POWER_SLOT, HIGH);
   } else {
     digitalWrite(POWER_SLOT, LOW);
@@ -153,6 +168,7 @@ void initDisplay()
   lcd.backlight();
   lcd.createChar(0, clock);
   lcd.createChar(1, heart);
+  lcd.createChar(2, deltaChar);
   lcd.home();
   lcd.print("--.--C");
   lcd.printByte(celsium_t);
@@ -160,6 +176,8 @@ void initDisplay()
   lcd.setCursor(11, 0);
   lcd.print("--/");
   lcd.print(TOTAL_DAYS);
+  lcd.setCursor(0, 1);
+  lcd.printByte(2);
   
 }
 
