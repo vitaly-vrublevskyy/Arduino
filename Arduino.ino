@@ -1,8 +1,14 @@
+#include <iarduino_RTC.h>
+#include <iarduino_RTC_DS3231.h>
+#include <memorysaver.h>
+
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <OneWire.h> //Temperature
 #include <Servo.h>
 #include <Keypad.h>
+
+
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #define printByte(args)  write(args);
@@ -10,7 +16,7 @@
 #define printByte(args)  print(args,BYTE);
 #endif
 
-const int TOTAL_DAYS = 18;
+const unsigned int TOTAL_DAYS = 18;
 
 const int TONE_PIN = 4; 
 const int POWER_SLOT = 3;
@@ -36,7 +42,7 @@ uint8_t heart[8] = {0x0,0xa,0x1f,0x1f,0xe,0x4,0x0};
 byte deltaChar[8] = {0b00000,0b00000,0b00000,0b00000,0b00100,0b01010,0b11111,0b00000};
 int celsium_t = 15 + 16*13;
 
-int currentDay = 1; //TODO:
+int currentDay;
 
 unsigned long duration; //duration from the beginig 
 
@@ -53,8 +59,11 @@ char keys[ROWS][COLS] = {
 };
 byte rowPins[ROWS] = {11,10, 9, 8}; // 5,6, 7,8
 byte colPins[COLS] = {7, 6, 5, 4}; 
-Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+//Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
+
+// TIME
+iarduino_RTC time(RTC_DS3231);
 /*
  * CRITICAL RESTRICTION:min/max 36-38 
 
@@ -73,15 +82,19 @@ Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 void setup()
 {
+  delay(300); 
+  
   Serial.begin(9600); //Debug
   
   pinMode(POWER_SLOT, OUTPUT);
   
   pinMode(TONE_PIN, OUTPUT);
+
+  //tone(TONE_PIN, 196);
+
+  time.begin();
   
   initDisplay();
-
-  tone(4, 196);
 }
 
 
@@ -101,32 +114,44 @@ void loop()
 
   heartbeat();
 
-  //playShortBeep();
+  //alarm();
 
-  // Rotate each 2 hours
-  const int fourHours = 4 * 60; // * 60;
-  if(duration % fourHours == 0) { 
+  handleRotate();
+
+  //debug time
+  lcd.setCursor(0, 1);
+  lcd.print(time.gettime("d-m, H:i:s"));
+}
+
+
+//------- Private methods -------
+
+
+void handleRotate() {
+  const int twoHour = 2 * 60 * 60;
+   // Rotate each 1 hours
+  if(duration % twoHour == 0) { 
     shakeLeftCard();
-  } else if (duration % fourHours == fourHours / 2) { 
+  } else if (duration % twoHour == twoHour / 2) { 
     shakeRightCard();
   }
 }
 
+
+void resetTime(){
+  // сек,  мин,  час, день, месяц, год, день недели
+  time.settime(1, 0, 0, 6, 0, 0, 0);
+}
+
 // Generates a pulse of duty cycle 50%
 // and period 800 milliseconds
-void playShortBeep()
+void alarm()
 {
   tone (TONE_PIN, 500); //включаем на 500 Гц
   delay(500); //ждем 100 Мс
   tone(TONE_PIN, 1000); //включаем на 1000 Гц
   delay(500); //ждем 100 Мс
-  //digitalWrite(TONE_PIN, HIGH);
-  //delay(400);
-  //digitalWrite(TONE_PIN, LOW);
-  //delay(400);
 }
-
-//------- Private methods -------
 
 void validateTemparature() {
   // depends on day
@@ -135,7 +160,6 @@ void validateTemparature() {
 //
 //  boolean inRange =  abs(temperature - expected) <  delta;
 
-  Serial.println(duration);
   if (duration % 50 == 0) {
     digitalWrite(POWER_SLOT, HIGH);
   } else {
@@ -173,32 +197,37 @@ void initDisplay()
   lcd.print("--.--C");
   lcd.printByte(celsium_t);
   
-  lcd.setCursor(11, 0);
-  lcd.print("--/");
+  lcd.setCursor(12, 0);
+  lcd.print("-/");
   lcd.print(TOTAL_DAYS);
   lcd.setCursor(0, 1);
-  lcd.printByte(2);
+  lcd.printByte(2); //delta symbol
   
 }
 
 void printDay() {
-  // TODO:  if (day() != currentDay) { currentDay = day()}
-  
-  lcd.setCursor(11, 0);
-  if (currentDay < 10){
-    lcd.print("0"); // inject '0'
+  if (time.day == currentDay) { 
+    return;
+  }
+
+  currentDay = time.day;
+  if (time.day < 10){
+      lcd.setCursor(12, 0);
+  } else {
+      lcd.setCursor(11, 0);
   }
   lcd.print(currentDay);
   if (currentDay > TOTAL_DAYS) {
     //TODO: tone + highlight 
   }
 
+/* Temporary  
   lcd.setCursor(7, 1);
   lcd.print(getMinTemperature(true));
   lcd.setCursor(11, 1);
   lcd.print("-");
   lcd.print(getMaxTemperature(true));
-  
+  */
 }
 
 void printDuration() {
@@ -246,7 +275,7 @@ float getTemperature(){
 
   // FIXME: this annoing shit
     if ( !ds.search(addr)) {
-      Serial.println("No more addresses.");
+      //Serial.println("No more addresses.");
       ds.reset_search();
       delay(250);
       return -1;
@@ -341,10 +370,13 @@ float getMaxTemperature(boolean norm){
 
 
 void handleKeyPress() {
+  /*
   char key = keypad.getKey();
   if (key) {
+    resetTime();
     //TODO: Process char
     // increse delta by 0.1
   }
+  */  
 }
 
