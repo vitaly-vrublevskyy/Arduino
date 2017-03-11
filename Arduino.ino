@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <OneWire.h> //Temperature
+#include <Servo.h>
+#include <Keypad.h>
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #define printByte(args)  write(args);
@@ -9,10 +11,16 @@
 #endif
 
 const int TOTAL_DAYS = 18;
+
+const int TONE_PIN = 7; //TODO: 
 const int POWER_SLOT = 3;
 const int TEMPERATURE_SLOT = 2;
+const int SERVO_SLOT = 9;
+
+int angle = 0;    // variable to store the servo position
 
 float  temperature; // celsius
+float deltaT = 0;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
@@ -20,19 +28,34 @@ LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars
 // Temperature sensor
 OneWire  ds(TEMPERATURE_SLOT);  // on pin 10 (a 4.7K resistor is necessary)
 
+Servo servo;  // create servo object to control a servo
+
 // Specail symbols
 uint8_t clock[8] = {0x0,0xe,0x15,0x17,0x11,0xe,0x0};
 uint8_t heart[8] = {0x0,0xa,0x1f,0x1f,0xe,0x4,0x0};
 int celsium_t = 15 + 16*13;
 
-int day = 1; //TODO:
+int currentDay = 1; //TODO:
 
 unsigned long duration; //duration from the beginig 
 
 boolean prevPowerMode;
 
+// Keyboard
+const byte ROWS = 4; // 4 строки
+const byte COLS = 4; // 4 столбца
+char keys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+byte rowPins[ROWS] = {11,10, 9, 8}; // 5,6, 7,8
+byte colPins[COLS] = {7, 6, 5, 4}; 
+Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+
 /*
- * CRITICAL RESTRICTION:min/max 37-38 
+ * CRITICAL RESTRICTION:min/max 36-38 
 
 1-12 day 36.6-37.7
 13-15 day 37.3-37.5
@@ -49,38 +72,47 @@ boolean prevPowerMode;
 
 void setup()
 {
-  Serial.begin(9600); //Temperature
+  Serial.begin(9600); //Debug
   
-  // initialize digital pin 13 as an output.
   pinMode(POWER_SLOT, OUTPUT);
+  
+  pinMode(TONE_PIN, OUTPUT);
   
   initDisplay();
 }
 
 
 void loop()
-{
+{ 
   temperature = getTemperature();
   
   duration = int(millis() / 1000);
 
+  handleKeyPress();
+
   printTemperature();
 
   validateTemparature();
-   
-  showDay();
+
+  printDay();
 
   heartbeat();
+
+  digitalWrite(TONE_PIN, HIGH); //Play sound
+
+  // Rotate each 2 hours
+  const int fourHours = 4 * 60; // * 60;
+  if(duration % fourHours == 0) { 
+    shakeLeftCard();
+  } else if (duration % fourHours == fourHours / 2) { 
+    shakeRightCard();
+  }
 
   //delay(1000);
 }
 
 //------- Private methods -------
-/*
-1-12 day 36.6-37.7
-13-15 day 37.3-37.5
-із 16 day 37.2
-*/
+
 void validateTemparature() {
   // depends on day
 //  float delta = 0.55;  
@@ -88,13 +120,32 @@ void validateTemparature() {
 //
 //  boolean inRange =  abs(temperature - expected) <  delta;
 
+  Serial.println(duration);
   if (duration % 60 == 0) {
     digitalWrite(POWER_SLOT, HIGH);
   } else {
-    digitalWrite(POWER_SLOT, HIGH);
+    digitalWrite(POWER_SLOT, LOW);
   }
 }
 
+void shakeLeftCard() {
+  servo.attach(SERVO_SLOT);
+  for (angle = 0; angle <= 180; angle += 1) { // goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+    servo.write(angle);              // tell servo to go to position in variable 'pos'
+    delay(15);                       // waits 15ms for the servo to reach the position
+  }
+  servo.detach();
+}
+
+void shakeRightCard() {
+  servo.attach(SERVO_SLOT);
+  for (angle = 180; angle >= 0; angle -= 1) { // goes from 180 degrees to 0 degrees
+    servo.write(angle);              // tell servo to go to position in variable 'pos'
+    delay(15);                       // waits 15ms for the servo to reach the position
+  }
+  servo.detach();
+}
 
 void initDisplay()
 {
@@ -107,17 +158,29 @@ void initDisplay()
   lcd.printByte(celsium_t);
   
   lcd.setCursor(11, 0);
-  lcd.print(day);
-  lcd.print(" day");
+  lcd.print("--/");
+  lcd.print(TOTAL_DAYS);
+  
 }
 
-void showDay() {
-  // TODO: detect day 
+void printDay() {
+  // TODO:  if (day() != currentDay) { currentDay = day()}
+  
   lcd.setCursor(11, 0);
-  lcd.print(day);
-  if (day > TOTAL_DAYS) {
+  if (currentDay < 10){
+    lcd.print("0"); // inject '0'
+  }
+  lcd.print(currentDay);
+  if (currentDay > TOTAL_DAYS) {
     //TODO: tone + highlight 
   }
+
+  lcd.setCursor(7, 1);
+  lcd.print(getMinTemperature(true));
+  lcd.setCursor(11, 1);
+  lcd.print("-");
+  lcd.print(getMaxTemperature(true));
+  
 }
 
 void printDuration() {
@@ -126,7 +189,7 @@ void printDuration() {
 }
 
 void heartbeat() {
-  lcd.setCursor(8, 0);
+  lcd.setCursor(9, 0);
   if (duration % 3 == 0){
     lcd.print(" ");
   } else {
@@ -136,7 +199,7 @@ void heartbeat() {
 }
 
 void highlightLCD() {
-  if (day % 2 == 0){
+  if (currentDay % 2 == 0){
     lcd.backlight(); 
   } else {
     lcd.noBacklight();
@@ -214,5 +277,56 @@ float getTemperature(){
   }
   celsius = (float)raw / 16.0;
   return celsius;
+}
+
+
+
+
+/*
+1-12 day 36.6-37.7
+13-15 day 37.3-37.5
+із 16 day 37.2
+*/
+
+float getMinTemperature(boolean norm){
+  float result;
+  if (currentDay <= 12) {
+    result = 36.6;
+  } else if (currentDay > 13 && currentDay <= 15 ) {
+    result = 37.3;
+  } else {
+    result = 37.2;
+  }
+  // apply delta
+  if (!norm){
+    result += deltaT;
+  }
+  return result;
+}
+
+float getMaxTemperature(boolean norm){
+  float result;
+  if (currentDay <= 12) {
+    result = 37.7;
+  } else if (currentDay > 13 && currentDay <= 15 ) {
+    result = 37.5;
+  } else {
+    result = 37.2;
+  }
+  // apply delta
+  if (!norm){
+    result += deltaT;
+  }
+  return result;
+}
+
+
+
+void handleKeyPress() {
+  char key = keypad.getKey();
+  if (key) {
+    //TODO: Process char
+    // increse delta by 0.1
+  }
 }
 
