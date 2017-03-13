@@ -18,8 +18,8 @@ float getTemperature() {
   float celsius, fahrenheit;
   
   if ( !ds.search(addr)) {
-    Serial.println("No more addresses.");
-    Serial.println();
+    //Serial.println("No more addresses.");
+    //Serial.println();
     ds.reset_search();
     delay(250);
     return NULL;
@@ -30,11 +30,10 @@ float getTemperature() {
       Serial.println("CRC is not valid!");
       return NULL;
   }
-  Serial.println();
 
   ds.reset();
   ds.select(addr);
-  ds.write(0x44, 1);        // start conversion, with parasite power on at the end
+  ds.write(0x44);  // Using normal 3 connection mode: http://arduino-diy.com/arduino-tsifrovoy-datchik-temperatury-DS18B20
   
   delay(1000);     // maybe 750ms is enough, maybe not
   // we might do a ds.depower() here, but the reset will take care of it.
@@ -43,17 +42,10 @@ float getTemperature() {
   ds.select(addr);    
   ds.write(0xBE);         // Read Scratchpad
 
-  Serial.print("  Data = ");
-  Serial.print(present, HEX);
-  Serial.print(" ");
-  for ( i = 0; i < 9; i++) {           // we need 9 bytes
+  for ( i = 0; i < 9; i++) {   // we need 9 bytes
     data[i] = ds.read();
-    Serial.print(data[i], HEX);
-    Serial.print(" ");
   }
-  Serial.print(" CRC=");
-  Serial.print(OneWire::crc8(data, 8), HEX);
-  Serial.println();
+
 
   // Convert the data to actual temperature
   // because the result is a 16 bit signed integer, it should
@@ -75,8 +67,8 @@ float getTemperature() {
     //// default is 12 bit resolution, 750 ms conversion time
   }
   celsius = (float)raw / 16.0;
-  Serial.print("  Temperature = ");
-  Serial.print(celsius);
-  Serial.println(" Celsius, ");
+//  Serial.print("  Temperature = ");
+//  Serial.print(celsius);
+//  Serial.print(" Celsius, ");
   return celsius;
 }
