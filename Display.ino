@@ -15,6 +15,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 char
 uint8_t clock[8] = {0x0, 0xe, 0x15, 0x17, 0x11, 0xe, 0x0};
 uint8_t heart[8] = {0x0, 0xa, 0x1f, 0x1f, 0xe, 0x4, 0x0};
 byte deltaChar[8] = {0b00000, 0b00000, 0b00000, 0b00000, 0b00100, 0b01010, 0b11111, 0b00000};
+byte windChar[8] = {0b00000,0b11001,0b00101,0b01110,0b10100,0b10011,0b00000,0b00000};
 int celsium_t = 15 + 16 * 13;
 
 int currentDay;
@@ -29,6 +30,7 @@ void initDisplay()
   lcd.createChar(0, clock);
   lcd.createChar(1, heart);
   lcd.createChar(2, deltaChar);
+  lcd.createChar(3, windChar);
   
   lcd.home();
   
@@ -53,17 +55,19 @@ void highlightLCD() {
 }
 
 
-void updateDisplay() {
+void updateDisplay(boolean ventilation) {
   printTemperature();
   
   printDay();
 
   heartbeat();
 
-  if (isVentilation()) {
+  if (ventilation) {
     printRemainigVentilationTime();
   } else {
+    // FIXME: issue
     // Clear
+    //lcd.clear();
   }
 }
 
@@ -115,6 +119,6 @@ void printRemainigVentilationTime() {
   if (seconds % 3 == 0) {
     lcd.print(" ");
   } else {
-    lcd.printByte(0);
+    lcd.printByte(3);
   }
 }
