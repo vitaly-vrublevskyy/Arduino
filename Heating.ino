@@ -34,6 +34,7 @@ void heating(boolean turnOn) {
       digitalWrite(POWER_SLOT, HIGH);  
     } else {
       digitalWrite(POWER_SLOT, LOW);
+      clearUserInfo();
     }
   }
 }

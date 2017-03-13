@@ -16,13 +16,15 @@ void initServo(){
   */
 
 void handleRotate() {
+  if (duration % 5 == 0)
+  Serial.println(time.gettime("d-m-Y, H:i:s,"));
   //const int someMinute = 7;
   //TODO: time.Hours % 2 == 0 && time.minutes == someMinute
-  if (time.minutes % 2 == 0 && duration > 30) {
-    rotateLeft();  
-  //TODO: time.Hours % 2 == 1  time.minutes == someMinute
-  } else if (time.minutes % 2 == 1 && duration > 30) {
+  if (time.minutes % 2 == 1) {
     rotateRight();
+  //TODO: time.Hours % 2 == 1  time.minutes == someMinute
+  } else if (time.minutes % 2 == 0) {
+    rotateLeft();  
   } 
 }
 

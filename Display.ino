@@ -43,8 +43,6 @@ void initDisplay()
   lcd.setCursor(12, 0);
   lcd.print("-/");
   lcd.print(TOTAL_DAYS);
-  lcd.setCursor(0, 1);
-  lcd.printByte(2); //delta symbol
 
 }
 
@@ -113,10 +111,12 @@ void heartbeat() {
 
 void blinkHeating() {
   lcd.setCursor(0, 1);
-  if (duration % 5 == 0) {
-    lcd.print(" ");
+  if (duration % 3 == 0) {
+    lcd.print("   ");
   } else {
     lcd.printByte(4);
+    lcd.print("t");
+    lcd.printByte(celsium_t);
   }
 }
 
@@ -126,6 +126,10 @@ void printTemperature(float temperature) {
   lcd.print(temperature);
 }
 
+void clearUserInfo(){
+  lcd.setCursor(0, 1);
+  lcd.print("      "); // x6
+}
 
 void printRemainigVentilationTime() {
   lcd.setCursor(1, 1);

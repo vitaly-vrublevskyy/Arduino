@@ -53,10 +53,12 @@ void loop()
       handleVentilation(temperature, ventilation); // Ventilation.h
     
       validateTemparature(temperature, ventilation); // Heating.h
+
+      if (duration > 15) {
+         handleRotate(); // Rotate.h 
+      }
     
-      handleRotate(); // Rotate.h
-    
-      updateDisplay(temperature, ventilation); // Display.h
+      updateDisplay(temperature, ventilation); //  // Display.h
   }
 }
 

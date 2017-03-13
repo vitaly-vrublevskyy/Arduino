@@ -14,6 +14,7 @@ void handleVentilation(float temperature, boolean turnOn) {
       digitalWrite(VENTILATION_SLOT, HIGH);
     } else {
       digitalWrite(VENTILATION_SLOT, LOW);
+      clearUserInfo();
     }
   }
 }
@@ -33,7 +34,7 @@ boolean isVentilation() {
 */
 
 int getVentilationLength() {
-  //return 0; // FIXME: debugger
+  return 0; // FIXME: debugger
   
   int day = time.day;
   const float multiplier = 4/3;
