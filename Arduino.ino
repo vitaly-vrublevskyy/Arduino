@@ -28,7 +28,7 @@ void setup()
 
   time.begin();
   
-  resetTime(); //DEV MODE:
+  //resetTime(); //DEV MODE:
 
   initDisplay();
 
@@ -43,6 +43,8 @@ void loop()
   handleKeyPress();
   
   duration = int(millis() / 1000);
+
+  time.gettime(); // force update
   
   float temperature = getTemperature(); // Temperature.h
   
@@ -54,7 +56,7 @@ void loop()
     
       validateTemparature(temperature, ventilation); // Heating.h
 
-      if (duration > 15) {
+      if (duration > 20 && time.day < 16) {
          handleRotate(); // Rotate.h 
       }
     
@@ -70,7 +72,7 @@ void loop()
 void resetTime() {
   // only for testing
   randomSeed(analogRead(0));
-  int randDay = int(random(16)) + 1;
+  int randDay = int(random(14)) + 1;
 
   // сек  0 до 59,  мин,  час, день 1 до 31, месяц, год, день недели
   time.settime(0, 0, 0, randDay, 0, 0, 0);
@@ -80,6 +82,7 @@ void resetTime() {
 void alarm() {
   tone (TONE_PIN, 500); //включаем на 500 Гц
 }
+
 
 /**
  *  Key Press : TTP229

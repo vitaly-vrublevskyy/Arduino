@@ -14,17 +14,14 @@ void initServo(){
 /**
   * Rotate each hour in some certain minute. E.g. 7th minute
   */
-
-void handleRotate() {
-  if (duration % 5 == 0)
-  Serial.println(time.gettime("d-m-Y, H:i:s,"));
-  //const int someMinute = 7;
-  //TODO: time.Hours % 2 == 0 && time.minutes == someMinute
-  if (time.minutes % 2 == 1) {
-    rotateRight();
-  //TODO: time.Hours % 2 == 1  time.minutes == someMinute
-  } else if (time.minutes % 2 == 0) {
+void handleRotate() { 
+  /*int minutes = duration / 60;
+  int hours = duration / (60 * 60);*/
+  const int certianMinute = 7;
+  if (time.Hours % 2 == 0 && time.minutes == certianMinute) {
     rotateLeft();  
+  } else if (time.Hours % 2 == 1 && time.minutes == certianMinute) {
+    rotateRight();
   } 
 }
 
@@ -32,6 +29,7 @@ void rotateLeft() {
   int startAngle = constrain(servo.read(), 0, MAX_ANGLE);
   boolean isStartLimitAngle = startAngle < 10;
   if (isStartLimitAngle) {
+    Serial.print(time.gettime("d-m-Y, H:i:s,"));
     Serial.print("  RotateLeft = ");
     Serial.println(startAngle);
 
@@ -46,24 +44,12 @@ void rotateLeft() {
 }
 
 
-/* // no lock
-void rotateLeftV2() {
-  if (servo.read() < MAX_ANGLE){
-    servo.attach(SERVO_SLOT); 
-    const int delta = 3;
-    int angle = constrain(servo.read() + delta, 0, MAX_ANGLE);
-    servo.write(angle); 
-  } else {
-    servo.detach(); 
-  }
-}
-*/
-
 void rotateRight() {
   int startAngle = constrain(servo.read(), 0, MAX_ANGLE);
   boolean isStartLimitAngle = abs(startAngle - MAX_ANGLE) < 10;
   if (isStartLimitAngle) {
-    Serial.print("  RotateRight = ");
+    Serial.print(time.gettime("d-m-Y, H:i:s,"));
+    Serial.print(":  RotateRight = ");
     Serial.println(startAngle);
     
     servo.attach(SERVO_SLOT);

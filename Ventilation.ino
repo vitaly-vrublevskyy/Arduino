@@ -12,9 +12,15 @@ void handleVentilation(float temperature, boolean turnOn) {
     ventilationOn = turnOn;
     if (turnOn) {
       digitalWrite(VENTILATION_SLOT, HIGH);
+
+      Serial.print(time.gettime("d-m-Y, H:i:s,"));
+      Serial.println("  Start Ventilation");
     } else {
       digitalWrite(VENTILATION_SLOT, LOW);
       clearUserInfo();
+      
+      Serial.print(time.gettime("d-m-Y, H:i:s,"));
+      Serial.println("  Stop Ventilation");
     }
   }
 }

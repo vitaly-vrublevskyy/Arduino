@@ -31,10 +31,16 @@ void heating(boolean turnOn) {
   if (heatingFlag != turnOn) {
     heatingFlag = turnOn;
     if (turnOn) {
-      digitalWrite(POWER_SLOT, HIGH);  
+      digitalWrite(POWER_SLOT, HIGH); 
+      Serial.print(time.gettime("d-m-Y, H:i:s,"));
+      Serial.print("  Start Heation = ");
+      Serial.println(getTemperature()); 
     } else {
       digitalWrite(POWER_SLOT, LOW);
       clearUserInfo();
+      Serial.print(time.gettime("d-m-Y, H:i:s,"));
+      Serial.print("  Stop Heation = ");
+      Serial.println(getTemperature()); 
     }
   }
 }

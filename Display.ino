@@ -57,13 +57,8 @@ void updateDisplay(float temperature, boolean ventilation) {
 
   if (ventilation) {
     printRemainigVentilationTime();
-  } else {
-    // FIXME: issue
-    // Clear
-    //lcd.clear();
   }
 }
-
 
 
 
@@ -111,7 +106,7 @@ void heartbeat() {
 
 void blinkHeating() {
   lcd.setCursor(0, 1);
-  if (duration % 3 == 0) {
+  if (duration % 5 == 0) {
     lcd.print("   ");
   } else {
     lcd.printByte(4);
@@ -120,7 +115,6 @@ void blinkHeating() {
   }
 }
 
-// Temperature
 void printTemperature(float temperature) {
   lcd.setCursor(0, 0);
   lcd.print(temperature);
