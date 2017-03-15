@@ -37,18 +37,18 @@ boolean isVentilation() {
   2-4 день пять разів на день охолодження 2-3 хв
   До 15 суток збільшити охолодження до 20 хв
   із 16 37.2 (без перевертання)
+
+  @return minute from 0.  
 */
 
 int getVentilationLength() {
-  return 0; // FIXME: debugger
-  
   int day = time.day;
   const float multiplier = 4/3;
   int minutes = -1;
   if (day >= 2 && day <= 4 ) {
-    minutes = 3;
+    minutes = 2;
   } else if (day > 4) {
-    minutes = int(constrain(day*multiplier, 3, 20)) + 1;
+    minutes = int(constrain(day*multiplier, 3, 20));
   }
   
   return minutes;
