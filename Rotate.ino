@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-const unsigned int MAX_ANGLE = 45;
+const unsigned int MAX_ANGLE = 60;
 
 // Motor
 Servo servo;  // create servo object to control a servo

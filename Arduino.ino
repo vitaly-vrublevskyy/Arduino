@@ -7,6 +7,7 @@ const int TONE_PIN = 4;
 const int POWER_SLOT = 5; 
 const int VENTILATION_SLOT = 3;
 const int TEMPERATURE_SLOT = 6;
+const int DHT_SLOT = 8;
 const int SERVO_SLOT = 9;
 
 unsigned long duration; //duration from the beginig Arduino
@@ -21,6 +22,8 @@ void setup()
   Serial.begin(9600); //Debug
   
   delay(300);
+
+  randomSeed(analogRead(0));
 
   pinMode(POWER_SLOT, OUTPUT);
   pinMode(VENTILATION_SLOT, OUTPUT);
@@ -47,8 +50,9 @@ void loop()
   time.gettime(); // force update
   
   float temperature = getTemperature(); // Temperature.h
+  int humidity = getHumidity();
   
-  if (temperature) {
+  if (temperature && humidity) {
     
       boolean ventilation = isVentilation(); // Ventilation.h
       
@@ -60,7 +64,7 @@ void loop()
          handleRotate(); // Rotate.h 
       }
     
-      updateDisplay(temperature, ventilation); //  // Display.h
+      updateDisplay(temperature, humidity, ventilation); //  // Display.h
   }
 }
 
@@ -70,8 +74,7 @@ void loop()
 * Util
 */
 void resetTime() {
-  // only for testing
-  randomSeed(analogRead(0));
+  
   int randDay = int(random(14)) + 1;
 
   // сек  0 до 59,  мин,  час, день 1 до 31, месяц, год, день недели
@@ -80,7 +83,10 @@ void resetTime() {
 
 
 void alarm() {
-  tone (TONE_PIN, 500); //включаем на 500 Гц
+  if (duration % 4 < 2  )
+    tone (TONE_PIN, 500); //включаем на 500 Гц
+  else
+    tone (TONE_PIN, 1000);
 }
 
 

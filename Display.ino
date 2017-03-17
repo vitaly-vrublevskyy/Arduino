@@ -18,6 +18,7 @@ uint8_t heart[8] = {0x0, 0xa, 0x1f, 0x1f, 0xe, 0x4, 0x0};
 byte deltaChar[8] = {0b00000, 0b00000, 0b00000, 0b00000, 0b00100, 0b01010, 0b11111, 0b00000};
 byte windChar[8] = {0b00000,0b11001,0b00101,0b01110,0b10100,0b10011,0b00000,0b00000};
 byte heatingChar[8] = {0b00100,0b11010,0b01010,0b11010,0b01010,0b10001,0b10001,0b01110};
+byte arrowUp[8] = {0b00111,0b00011,0b00101,0b01000,0b10000,0b00000,0b00000,0b00000};
 int celsium_t = 15 + 16 * 13;
 
 int currentDay;
@@ -34,6 +35,7 @@ void initDisplay()
   lcd.createChar(2, deltaChar);
   lcd.createChar(3, windChar);
   lcd.createChar(4, heatingChar);
+  lcd.createChar(5, arrowUp);
   
   lcd.home();
   
@@ -47,19 +49,26 @@ void initDisplay()
 }
 
 
-void updateDisplay(float temperature, boolean ventilation) {
-  
-  printTemperature(temperature);
-  
-  printDay();
+void updateDisplay(float temperature, int humidity, boolean ventilation) {
 
   heartbeat();
 
+  printTemperature(temperature);
+
+  printTemperatureRange();
+
+
+  // Toggle each half minute
+  if (time.seconds < 30 ) {
+    printDay();
+  } else {
+    printHumidity(humidity);
+  }
+  
   if (ventilation) {
     printRemainigVentilationTime();
   }
 }
-
 
 
 void highlightLCD() {
@@ -71,29 +80,43 @@ void highlightLCD() {
 }
 
 void printDay() {
-  if (time.day == currentDay) {
-    return;
-  }
-
-  currentDay = time.day;
-  if (time.day < 10) {
+  float day = time.day;
+  if (day < 10) {
     lcd.setCursor(12, 0);
   } else {
     lcd.setCursor(11, 0);
   }
-  lcd.print(currentDay);
-  if (currentDay > TOTAL_DAYS) {
+  lcd.print(day);
+  if (day > TOTAL_DAYS) {
     //TODO: tone + highlight
   }
-
-  lcd.setCursor(7, 1);
-  lcd.print(getMinTemperature(false));
-  lcd.setCursor(11, 1);
-  lcd.print("-");
-  lcd.print(getMaxTemperature(false));
 }
 
+void printHumidity(int h){
+  lcd.setCursor(11, 0);
+  lcd.print("  ");
+  lcd.print(h);
+  lcd.print("% ");
+}
 
+void printTemperatureRange() {
+  if (currentDay != time.day){
+    currentDay = time.day;
+    lcd.setCursor(7, 1);
+    lcd.print(getMinTemperature(false));
+    lcd.setCursor(11, 1);
+    lcd.print("-");
+    lcd.print(getMaxTemperature(false));
+  }
+}
+
+void printT2(float temperature2){
+  lcd.setCursor(7, 1);
+  lcd.print("  ");
+  lcd.print(temperature2);
+  lcd.print("C");
+  lcd.printByte(celsium_t);
+}
 
 void heartbeat() {
   lcd.setCursor(10, 0);
@@ -107,11 +130,12 @@ void heartbeat() {
 void blinkHeating() {
   lcd.setCursor(0, 1);
   if (duration % 5 == 0) {
-    lcd.print("   ");
+    lcd.print("    ");
   } else {
     lcd.printByte(4);
     lcd.print("t");
     lcd.printByte(celsium_t);
+    //lcd.printByte(5); //arrow up:
   }
 }
 
