@@ -19,7 +19,7 @@ void handleRotate() {
   int hours = duration / (60 * 60);*/
   const byte certianMinute = 7;
   if (time.Hours % 2 == 0 && time.minutes == certianMinute) {
-    rotateLeft();  
+    rotateLeft();
   } else if (time.Hours % 2 == 1 && time.minutes == certianMinute) {
     rotateRight();
   } 
@@ -34,7 +34,7 @@ void rotateLeft() {
     Serial.println(startAngle);
 
     servo.attach(SERVO_SLOT); 
-    for (byte angle = startAngle; angle <= MAX_ANGLE; angle += 1) { // goes from 0 degrees to MAX_ANGLE degrees
+    for (int angle = startAngle; angle <= MAX_ANGLE; angle += 1) { // goes from 0 degrees to MAX_ANGLE degrees
       servo.write(angle);              // tell servo to go to position in variable 'pos'
       delay(100);                      // waits 100ms for the servo to reach the position
     }
@@ -51,9 +51,9 @@ void rotateRight() {
     Serial.print(time.gettime("d-m-Y, H:i:s,"));
     Serial.print(":  RotateRight = ");
     Serial.println(startAngle);
-    
+
     servo.attach(SERVO_SLOT);
-    for (byte angle = startAngle; angle >= 0; angle -= 1) { // goes from MAX_ANGLE degrees to 0 degrees
+    for (int angle = startAngle; angle >= 0; angle -= 1) { // goes from MAX_ANGLE degrees to 0 degrees
       servo.write(angle);              // tell servo to go to position in variable 'pos'
       delay(100);                      // waits 100ms for the servo to reach the position
     }
