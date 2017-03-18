@@ -69,7 +69,7 @@ void loop()
          handleRotate(); // Rotate.h 
       }
     
-      updateDisplay(temperature, humidity, ventilation, turnOnHeat); //  // Display.h
+      updateDisplay(temperature, humidity, ventilation, turnOnHeat);  // Display.h
   }
 }
 
@@ -88,7 +88,7 @@ void resetTime() {
 
 
 void alarm() {
-  if (duration % 4 < 2  )
+  if (duration % 6 < 3)
     tone (TONE_PIN, 500); //включаем на 500 Гц
   else
     tone (TONE_PIN, 1000);

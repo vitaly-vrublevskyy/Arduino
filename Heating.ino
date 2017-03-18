@@ -12,11 +12,11 @@ Modes:
 */
 boolean validateTemparature(float temperature, boolean ventilation) {
   if (ventilation) {
-    return heating(false);
+    return heating(false, temperature);
   } else if (temperature < getMinTemperature(true)) {
-    return heating(true);
+    return heating(true, temperature);
   } else if (temperature >= getMaxTemperature(true)) {
-    return heating(false);
+    return heating(false, temperature);
   } 
 
   boolean isCriticalValue = (temperature <= CRITICAL_LOW_TEMPERATURE && !ventilation) || temperature >= CRITICAL_HIGH_TEMPERATURE;
@@ -27,21 +27,21 @@ boolean validateTemparature(float temperature, boolean ventilation) {
   return false;
 }
 
-boolean heating(boolean turnOn) {
+boolean heating(boolean turnOn, float t) {
   if (heatingFlag != turnOn) {
     heatingFlag = turnOn;
     if (turnOn) {
       digitalWrite(POWER_SLOT, HIGH); 
       // Logger
       Serial.print(time.gettime("d-m-Y, H:i:s,"));
-      Serial.print("  Start Heation = ");
-      Serial.println(getTemperature()); 
+      Serial.print("  Start Heation, t = ");
+      Serial.println(t);
     } else {
       digitalWrite(POWER_SLOT, LOW);
       // Logger
       Serial.print(time.gettime("d-m-Y, H:i:s,"));
-      Serial.print("  Stop Heation = ");
-      Serial.println(getTemperature()); 
+      Serial.print("  Stop Heation, t = ");
+      Serial.println(t);
     }
   }
   return turnOn;

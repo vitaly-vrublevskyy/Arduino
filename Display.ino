@@ -8,7 +8,7 @@
 #endif
 
 const byte TOTAL_DAYS = 18;
-const byte BLINK_DELAY = 5;
+const byte BLINK_DELAY = 4;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
@@ -20,6 +20,8 @@ byte deltaChar[8] = {0b00000, 0b00000, 0b00000, 0b00000, 0b00100, 0b01010, 0b111
 byte windChar[8] = {0b00000,0b11001,0b00101,0b01110,0b10100,0b10011,0b00000,0b00000};
 byte heatingChar[8] = {0b00100,0b11010,0b01010,0b11010,0b01010,0b10001,0b10001,0b01110};
 byte arrowUp[8] = {0b00111,0b00011,0b00101,0b01000,0b10000,0b00000,0b00000,0b00000};
+byte quailChar[8] = {0b00000,0b00000,0b00000,0b00100,0b01110,0b01110,0b01110,0b00100};
+byte chickenChar[8] = {0b00100,0b01110,0b11111,0b11111,0b11111,0b11111,0b01110,0b00000};
 byte celsium_t = 15 + 16 * 13;
 
 int currentDay;
@@ -37,6 +39,8 @@ void initDisplay()
   lcd.createChar(3, windChar);
   lcd.createChar(4, heatingChar);
   lcd.createChar(5, arrowUp);
+  lcd.createChar(6, quailChar);
+  lcd.createChar(7, chickenChar);
   
   lcd.home();
 }
@@ -56,10 +60,10 @@ void updateDisplay(float temperature, int humidity, boolean ventilation, boolean
   } else {
     clearPixels();
   }
-  
-  if (duration % 30 < 15) {
+
+  if (duration % 20 < 10) {
     printDay();
-  } else if (duration % 30 < 30) {
+  } else {
     printTemperatureRange();
   }
 }
@@ -117,7 +121,7 @@ void blinkHeating(boolean turnOnHeat) {
   lcd.setCursor(10, 0);
   
   if (duration % BLINK_DELAY == 0) {
-    lcd.print("   ");
+    lcd.print("      ");
   } else {
     lcd.printByte(4);
     lcd.print("t");
