@@ -7,7 +7,8 @@
 #define printByte(args)  print(args,BYTE);
 #endif
 
-const unsigned int TOTAL_DAYS = 18;
+const byte TOTAL_DAYS = 18;
+const byte BLINK_DELAY = 5;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
@@ -19,7 +20,7 @@ byte deltaChar[8] = {0b00000, 0b00000, 0b00000, 0b00000, 0b00100, 0b01010, 0b111
 byte windChar[8] = {0b00000,0b11001,0b00101,0b01110,0b10100,0b10011,0b00000,0b00000};
 byte heatingChar[8] = {0b00100,0b11010,0b01010,0b11010,0b01010,0b10001,0b10001,0b01110};
 byte arrowUp[8] = {0b00111,0b00011,0b00101,0b01000,0b10000,0b00000,0b00000,0b00000};
-int celsium_t = 15 + 16 * 13;
+byte celsium_t = 15 + 16 * 13;
 
 int currentDay;
 
@@ -38,35 +39,28 @@ void initDisplay()
   lcd.createChar(5, arrowUp);
   
   lcd.home();
-  
-  lcd.print("--.--C");
-  lcd.printByte(celsium_t);
-
-  lcd.setCursor(12, 0);
-  lcd.print("-/");
-  lcd.print(TOTAL_DAYS);
-
 }
 
 
-void updateDisplay(float temperature, int humidity, boolean ventilation) {
-
-  heartbeat();
+void updateDisplay(float temperature, int humidity, boolean ventilation, boolean turnOnHeat) {
 
   printTemperature(temperature);
 
-  printTemperatureRange();
+  printHumidity(humidity);
 
-
-  // Toggle each half minute
-  if (time.seconds < 30 ) {
-    printDay();
-  } else {
-    printHumidity(humidity);
-  }
-  
+  // Handle status info  
   if (ventilation) {
     printRemainigVentilationTime();
+  } else if (turnOnHeat) {
+    blinkHeating(turnOnHeat);
+  } else {
+    clearPixels();
+  }
+  
+  if (duration % 30 < 15) {
+    printDay();
+  } else if (duration % 30 < 30) {
+    printTemperatureRange();
   }
 }
 
@@ -80,57 +74,50 @@ void highlightLCD() {
 }
 
 void printDay() {
-  float day = time.day;
+  lcd.setCursor(7, 1);
+  lcd.print("     ");
+  
+  //heartbeat
+  lcd.setCursor(10, 1);
+  lcd.printByte(1);
+
+  
+  int day = time.day;
   if (day < 10) {
-    lcd.setCursor(12, 0);
+    lcd.setCursor(12, 1);
   } else {
-    lcd.setCursor(11, 0);
+    lcd.setCursor(11, 1);
   }
+  
   lcd.print(day);
+  lcd.print("/");
+  lcd.print(TOTAL_DAYS);
   if (day > TOTAL_DAYS) {
     //TODO: tone + highlight
   }
 }
 
 void printHumidity(int h){
-  lcd.setCursor(11, 0);
-  lcd.print("  ");
+  lcd.setCursor(0, 1);
   lcd.print(h);
-  lcd.print("% ");
+  lcd.print("%");
 }
 
 void printTemperatureRange() {
-  if (currentDay != time.day){
     currentDay = time.day;
     lcd.setCursor(7, 1);
     lcd.print(getMinTemperature(false));
     lcd.setCursor(11, 1);
     lcd.print("-");
     lcd.print(getMaxTemperature(false));
-  }
 }
 
-void printT2(float temperature2){
-  lcd.setCursor(7, 1);
-  lcd.print("  ");
-  lcd.print(temperature2);
-  lcd.print("C");
-  lcd.printByte(celsium_t);
-}
 
-void heartbeat() {
+void blinkHeating(boolean turnOnHeat) {
   lcd.setCursor(10, 0);
-  if (duration % 5 == 0) {
-    lcd.print(" ");
-  } else {
-    lcd.printByte(1);
-  }
-}
-
-void blinkHeating() {
-  lcd.setCursor(0, 1);
-  if (duration % 5 == 0) {
-    lcd.print("    ");
+  
+  if (duration % BLINK_DELAY == 0) {
+    lcd.print("   ");
   } else {
     lcd.printByte(4);
     lcd.print("t");
@@ -142,21 +129,21 @@ void blinkHeating() {
 void printTemperature(float temperature) {
   lcd.setCursor(0, 0);
   lcd.print(temperature);
-}
-
-void clearUserInfo(){
-  lcd.setCursor(0, 1);
-  lcd.print("      "); // x6
+  lcd.print("C");
+  lcd.printByte(celsium_t);
 }
 
 void printRemainigVentilationTime() {
-  lcd.setCursor(1, 1);
-  lcd.print(time.gettime("i:s")); 
-
-  lcd.setCursor(0, 1);
+  lcd.setCursor(10, 0);
   if (duration % 3 == 0) {
     lcd.print(" ");
   } else {
     lcd.printByte(3);
   }
+  lcd.print(time.gettime("i:s")); 
+}
+
+void clearPixels() {
+   lcd.setCursor(10, 0);
+   lcd.print("      ");
 }

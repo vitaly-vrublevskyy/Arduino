@@ -3,6 +3,10 @@
 #include <memorysaver.h>
 #include <Wire.h>
 
+const boolean PROD = false;
+
+const boolean CHICKEN_MODE = false;
+
 const int TONE_PIN = 4;
 const int POWER_SLOT = 5; 
 const int VENTILATION_SLOT = 3;
@@ -10,11 +14,11 @@ const int TEMPERATURE_SLOT = 6;
 const int DHT_SLOT = 8;
 const int SERVO_SLOT = 9;
 
-unsigned long duration; //duration from the beginig Arduino
-
 
 // Clock
 iarduino_RTC time(RTC_DS3231);
+
+unsigned long duration; //duration from the beginig Arduino
 
 
 void setup()
@@ -37,7 +41,8 @@ void setup()
 
   initServo(); // !prevent issue
 
-  // PROD MODE: tone(TONE_PIN, 196);
+  if (PROD)
+    tone(TONE_PIN, 196);
 }
 
 
@@ -58,13 +63,13 @@ void loop()
       
       handleVentilation(temperature, ventilation); // Ventilation.h
     
-      validateTemparature(temperature, ventilation); // Heating.h
+      boolean turnOnHeat = validateTemparature(temperature, ventilation); // Heating.h
 
       if (duration > 20 && time.day < 16) {
          handleRotate(); // Rotate.h 
       }
     
-      updateDisplay(temperature, humidity, ventilation); //  // Display.h
+      updateDisplay(temperature, humidity, ventilation, turnOnHeat); //  // Display.h
   }
 }
 

@@ -17,7 +17,6 @@ void handleVentilation(float temperature, boolean turnOn) {
       Serial.println("  Start Ventilation");
     } else {
       digitalWrite(VENTILATION_SLOT, LOW);
-      clearUserInfo();
       
       Serial.print(time.gettime("d-m-Y, H:i:s,"));
       Serial.println("  Stop Ventilation");

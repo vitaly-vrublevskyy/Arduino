@@ -45,17 +45,6 @@ float getHumidity(){
 
 float getTemperature2(){
   // Read temperature as Celsius (the default)
-  float t = dht.readTemperature();
-
-  float h = dht.readHumidity();
-  
-  // Check if any reads failed and exit early (to try again).
-  if (isnan(t) || isnan(h)) {
-    Serial.println("Failed to read from DHT sensor!");
-    return NULL;
-  }
-  
-  // Compute heat index in Celsius (isFahreheit = false)
-  return dht.computeHeatIndex(t, h, false);
+  return dht.readTemperature();
 }
 

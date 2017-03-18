@@ -10,44 +10,46 @@ Modes:
   13-15 day 37.3-37.5
   із 16 day 37.2
 */
-void validateTemparature(float temperature, boolean ventilation) {
+boolean validateTemparature(float temperature, boolean ventilation) {
   if (ventilation) {
-    heating(false);
+    return heating(false);
   } else if (temperature < getMinTemperature(true)) {
-    heating(true);
+    return heating(true);
   } else if (temperature >= getMaxTemperature(true)) {
-    heating(false);
+    return heating(false);
   } 
 
   boolean isCriticalValue = (temperature <= CRITICAL_LOW_TEMPERATURE && !ventilation) || temperature >= CRITICAL_HIGH_TEMPERATURE;
-  if (isCriticalValue) {
-    // PROD: alarm(); 
+  if (isCriticalValue && PROD) {
+    alarm();
   }
+
+  return false;
 }
 
-void heating(boolean turnOn) {
-  if (turnOn) blinkHeating(); //Display.h
-  
+boolean heating(boolean turnOn) {
   if (heatingFlag != turnOn) {
     heatingFlag = turnOn;
     if (turnOn) {
       digitalWrite(POWER_SLOT, HIGH); 
+      // Logger
       Serial.print(time.gettime("d-m-Y, H:i:s,"));
       Serial.print("  Start Heation = ");
       Serial.println(getTemperature()); 
     } else {
       digitalWrite(POWER_SLOT, LOW);
-      clearUserInfo();
+      // Logger
       Serial.print(time.gettime("d-m-Y, H:i:s,"));
       Serial.print("  Stop Heation = ");
       Serial.println(getTemperature()); 
     }
   }
+  return turnOn;
 }
 
 float getMinTemperature(boolean applyDelta) {
   float result;
-  int day =  time.day;
+  byte day =  time.day;
   if ( day <= 12) {
     result = 36.6;
   } else if (day >= 13 && day <= 15 ) {
@@ -64,7 +66,7 @@ float getMinTemperature(boolean applyDelta) {
 
 float getMaxTemperature(boolean applyDelta) {
   float result;
-  int day = time.day;
+  byte day = time.day;
   if (day <= 12) {
     result = 37.7;
   } else if (day >= 13 && day <= 15 ) {
