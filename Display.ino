@@ -7,7 +7,7 @@
 #define printByte(args)  print(args,BYTE);
 #endif
 
-const byte TOTAL_DAYS = 18;
+
 const byte BLINK_DELAY = 4;
 
 // LCD
@@ -46,6 +46,10 @@ void initDisplay()
 }
 
 
+byte getTotalDays() {
+    return CHICKEN_MODE ? 21 : 18;
+}
+
 void updateDisplay(float temperature, int humidity, boolean ventilation, boolean turnOnHeat) {
 
   printTemperature(temperature);
@@ -61,19 +65,14 @@ void updateDisplay(float temperature, int humidity, boolean ventilation, boolean
     clearPixels();
   }
 
-  if (duration % 20 < 10) {
+  if (duration % 30 < 10) {
     printDay();
-  } else {
+  } else if (duration % 30 < 20)  {
     printTemperatureRange();
-  }
-}
-
-
-void highlightLCD() {
-  if (duration % 10 > 5) { // 
-    lcd.backlight();
   } else {
-    lcd.noBacklight();
+    lcd.setCursor(7, 1);
+    lcd.print(" ");
+    lcd.print(time.gettime("H:i:s"));
   }
 }
 
@@ -95,9 +94,11 @@ void printDay() {
   
   lcd.print(day);
   lcd.print("/");
-  lcd.print(TOTAL_DAYS);
-  if (day > TOTAL_DAYS) {
-    //TODO: tone + highlight
+  lcd.print(getTotalDays());
+
+  if (day >= getTotalDays() && time.Hours == 0 && time.minutes == 0) {
+    highlightLCD();
+    alarm();
   }
 }
 
@@ -110,10 +111,10 @@ void printHumidity(int h){
 void printTemperatureRange() {
     currentDay = time.day;
     lcd.setCursor(7, 1);
-    lcd.print(getMinTemperature(false));
+    lcd.print(getMinTemperature());
     lcd.setCursor(11, 1);
     lcd.print("-");
-    lcd.print(getMaxTemperature(false));
+    lcd.print(getMaxTemperature());
 }
 
 
@@ -150,4 +151,12 @@ void printRemainigVentilationTime() {
 void clearPixels() {
    lcd.setCursor(10, 0);
    lcd.print("      ");
+}
+
+void highlightLCD() {
+  if (duration % 4 < 2) {
+    lcd.backlight();
+  } else {
+    lcd.noBacklight();
+  }
 }

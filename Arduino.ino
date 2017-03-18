@@ -65,10 +65,8 @@ void loop()
     
       boolean turnOnHeat = validateTemparature(temperature, ventilation); // Heating.h
 
-      if (duration > 20 && time.day < 16) {
-         handleRotate(); // Rotate.h 
-      }
-    
+      handleRotate(); // Rotate.h
+
       updateDisplay(temperature, humidity, ventilation, turnOnHeat);  // Display.h
   }
 }

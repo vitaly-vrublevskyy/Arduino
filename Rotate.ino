@@ -10,19 +10,23 @@ void initServo(){
   servo.write(0); // !prevent issue: magic value 93
 }
 
+byte getLimitDayForRotation() {
+    return CHICKEN_MODE ? 18 : 16;
+}
 
 /**
   * Rotate each hour in some certain minute. E.g. 7th minute
   */
-void handleRotate() { 
-  /*int minutes = duration / 60;
-  int hours = duration / (60 * 60);*/
-  const byte certianMinute = 7;
-  if (time.Hours % 2 == 0 && time.minutes == certianMinute) {
-    rotateLeft();
-  } else if (time.Hours % 2 == 1 && time.minutes == certianMinute) {
-    rotateRight();
-  } 
+
+void handleRotate() {
+  if (time.day < getLimitDayForRotation()) {
+      const byte certainMinute = 7;
+      if (time.Hours % 2 == 0 && time.minutes == certainMinute) {
+        rotateLeft();
+      } else if (time.Hours % 2 == 1 && time.minutes == certainMinute) {
+        rotateRight();
+      }
+  }
 }
 
 void rotateLeft() {  
